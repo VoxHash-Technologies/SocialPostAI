@@ -1,0 +1,126 @@
+name: Version Bump
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_type:
+        description: 'Version bump type'
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+jobs:
+  bump-version:
+    name: Bump Version and Create Tag
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+      
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+      
+      - name: Read current version
+        id: current_version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "current=$VERSION" >> $GITHUB_OUTPUT
+          echo "Current version: $VERSION"
+      
+      - name: Bump version
+        id: bump_version
+        run: |
+          CURRENT=${{ steps.current_version.outputs.current }}
+          TYPE=${{ github.event.inputs.version_type }}
+          
+          IFS='.' read -ra ADDR <<< "$CURRENT"
+          MAJOR=${ADDR[0]}
+          MINOR=${ADDR[1]}
+          PATCH=${ADDR[2]}
+          
+          case $TYPE in
+            major)
+              MAJOR=$((MAJOR + 1))
+              MINOR=0
+              PATCH=0
+              ;;
+            minor)
+              MINOR=$((MINOR + 1))
+              PATCH=0
+              ;;
+            patch)
+              PATCH=$((PATCH + 1))
+              ;;
+          esac
+          
+          NEW_VERSION="${MAJOR}.${MINOR}.${PATCH}"
+          echo "new=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "New version: $NEW_VERSION"
+      
+      - name: Update package.json versions
+        run: |
+          NEW_VERSION="${{ steps.bump_version.outputs.new }}"
+          
+          # Update root package.json
+          npm pkg set version=$NEW_VERSION
+          
+          # Update extension package.json
+          cd packages/extension
+          npm pkg set version=$NEW_VERSION
+          cd ../..
+      
+      - name: Update CHANGELOG
+        run: |
+          NEW_VERSION="${{ steps.bump_version.outputs.new }}"
+          DATE=$(date +%Y-%m-%d)
+          
+          # Create changelog entry
+          sed -i "1i\\
+## ${NEW_VERSION} - ${DATE}\\
+- Automated version bump\\
+\\
+" CHANGELOG.md
+      
+      - name: Commit changes
+        run: |
+          git add package.json packages/extension/package.json CHANGELOG.md
+          git commit -m "chore: bump version to ${{ steps.bump_version.outputs.new }}"
+          git push origin HEAD:main
+      
+      - name: Create tag
+        run: |
+          git tag -a "v${{ steps.bump_version.outputs.new }}" -m "Release v${{ steps.bump_version.outputs.new }}"
+          git push origin "v${{ steps.bump_version.outputs.new }}"
+      
+      - name: Create PR (if not on main)
+        if: github.ref != 'refs/heads/main'
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "chore: bump version to ${{ steps.bump_version.outputs.new }}"
+          title: "Version Bump: ${{ steps.bump_version.outputs.new }}"
+          body: |
+            Automated version bump to **${{ steps.bump_version.outputs.new }}**
+            
+            - Previous version: ${{ steps.current_version.outputs.current }}
+            - Bump type: ${{ github.event.inputs.version_type }}
+            
+            This PR will trigger a release when merged and tagged.
+          branch: version-bump-${{ steps.bump_version.outputs.new }}
