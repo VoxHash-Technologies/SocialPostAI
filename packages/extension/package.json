@@ -1,0 +1,60 @@
+{
+  "name": "@voxhash/socialpostai-extension",
+  "displayName": "SocialPostAI",
+  "version": "0.1.0",
+  "description": "Post to Threads and Bluesky directly from Cursor or VSCodium",
+  "publisher": "VoxHashTechnologies",
+  "main": "dist/extension.js",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": ["Productivity", "Social"],
+  "activationEvents": [
+    "*"
+  ],
+  "contributes": {
+    "commands": [
+      { "command": "socialpostai.draft", "title": "SocialPostAI: Draft Post" },
+      { "command": "socialpostai.draftFromSelection", "title": "SocialPostAI: Draft from Selection" },
+      { "command": "socialpostai.preview", "title": "SocialPostAI: Preview Posts" },
+      { "command": "socialpostai.publishThreads", "title": "SocialPostAI: Publish to Threads" },
+      { "command": "socialpostai.publishBluesky", "title": "SocialPostAI: Publish to Bluesky" },
+      { "command": "socialpostai.publish", "title": "SocialPostAI: Publish to All Platforms" },
+      { "command": "socialpostai.settings", "title": "SocialPostAI: Account & Tokens" }
+    ],
+    "configuration": {
+      "title": "SocialPostAI",
+      "properties": {
+        "socialpostai.threadsToken": {
+          "type": "string",
+          "markdownDescription": "Threads Graph API access token. Stored in VS Code Secret Storage on first use.",
+          "scope": "application"
+        },
+        "socialpostai.threadsUserId": {
+          "type": "string",
+          "markdownDescription": "Threads user id (needed for Graph API publishing).",
+          "scope": "application"
+        },
+        "socialpostai.blueskyHandle": {
+          "type": "string",
+          "markdownDescription": "Bluesky handle (user@domain). Stored in settings; app password is requested and stored in Secret Storage.",
+          "scope": "application"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "watch": "tsc -w -p tsconfig.json",
+    "lint": "eslint \"src/**/*.ts\""
+  },
+  "dependencies": {
+    "@voxhash/socialpostai-adapters": "0.1.0",
+    "@voxhash/socialpostai-core": "0.1.0",
+    "@voxhash/socialpostai-scheduler": "0.1.0"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.6.3"
+  }
+}

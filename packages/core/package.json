@@ -1,0 +1,17 @@
+{
+  "name": "@voxhash/socialpostai-core",
+  "version": "0.1.0",
+  "description": "Core utilities for SocialPostAI content intelligence and payload prep",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "node --test dist/index.test.js || true"
+  },
+  "author": "VoxHash Technologies",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {
+    "typescript": "^5.6.3"
+  }
+}

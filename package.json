@@ -1,0 +1,33 @@
+{
+  "name": "socialpostai-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Monorepo for SocialPostAI by VoxHash Technologies",
+  "workspaces": [
+    "packages/core",
+    "packages/adapters",
+    "packages/scheduler",
+    "packages/extension"
+  ],
+  "scripts": {
+    "build": "npm run build -w packages/core && npm run build -w packages/adapters && npm run build -w packages/scheduler && npm run build -w packages/extension",
+    "lint": "eslint \"packages/**/*.ts\"",
+    "format": "prettier --write .",
+    "test": "npm run test -w packages/core && npm run test -w packages/adapters",
+    "prepare": "npm run build"
+  },
+  "devDependencies": {
+    "@types/node": "^22.9.0",
+    "eslint": "^8.57.1",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-import": "^2.29.1",
+    "prettier": "^3.3.3",
+    "typescript": "^5.6.3"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "packageManager": "npm@10.9.0",
+  "author": "VoxHash Technologies",
+  "license": "MIT"
+}
